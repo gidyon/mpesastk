@@ -175,7 +175,7 @@ func main() {
 	// Start service
 	app.Start(ctx, func() error {
 
-		var stkCallback1 = viper.GetString("STK_RESULT_URL")
+		var stkCallbackV1 = firstVal(viper.GetString("STK_RESULT_URL"))
 
 		// STK V1
 		stkV1, err := stk_app_v1.NewStkAPI(ctx, &stk_app_v1.Options{
@@ -191,7 +191,7 @@ func main() {
 				AccountReference:  viper.GetString("STK_MPESA_ACCOUNT_REFERENCE"),
 				Timestamp:         viper.GetString("STK_MPESA_ACCESS_TIMESTAMP"),
 				PassKey:           viper.GetString("STK_LNM_PASSKEY"),
-				CallBackURL:       stkCallback1,
+				CallBackURL:       stkCallbackV1,
 				PostURL:           viper.GetString("STK_MPESA_POST_URL"),
 				QueryURL:          viper.GetString("STK_MPESA_QUERY_URL"),
 			},
@@ -202,6 +202,23 @@ func main() {
 
 		stk_v1.RegisterStkPushV1Server(app.GRPCServer(), stkV1)
 		errs.Panic(stk_v1.RegisterStkPushV1Handler(ctx, app.RuntimeMux(), app.ClientConn()))
+
+		// Options for gateways
+		opts := &Options{
+			SQLDB:    sqlDB,
+			RedisDB:  redisDB,
+			Logger:   appLogger,
+			AuthAPI:  authAPI,
+			StkV1API: stkV1,
+		}
+
+		// MPESA STK Push gateway
+		stkGateway, err := NewSTKGateway(ctx, opts)
+		errs.Panic(err)
+
+		// V1 endpoint
+		app.AddEndpointFunc("/v1/mpesastkIncoming", stkGateway.ServeStkV1)
+		appLogger.Infof("STK callback path: %v", stkCallbackV1)
 
 		return nil
 	})
