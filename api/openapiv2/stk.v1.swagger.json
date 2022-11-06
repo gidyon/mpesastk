@@ -199,7 +199,8 @@
             "name": "transactionId",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "format": "uint64"
           },
           {
             "name": "mpesaReceiptId",
@@ -457,7 +458,8 @@
       "type": "object",
       "properties": {
         "transactionId": {
-          "type": "string"
+          "type": "string",
+          "format": "uint64"
         },
         "mpesaReceiptId": {
           "type": "string"
@@ -489,10 +491,11 @@
     "mpesastkPublishMessage": {
       "type": "object",
       "properties": {
-        "initiatorId": {
-          "type": "string"
-        },
         "transactionId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "initiatorId": {
           "type": "string"
         },
         "mpesaReceiptId": {

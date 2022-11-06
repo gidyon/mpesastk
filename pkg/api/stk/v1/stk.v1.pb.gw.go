@@ -85,7 +85,7 @@ func request_StkPushV1_GetStkTransaction_0(ctx context.Context, marshaler runtim
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "transaction_id")
 	}
 
-	protoReq.TransactionId, err = runtime.String(val)
+	protoReq.TransactionId, err = runtime.Uint64(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "transaction_id", err)
 	}
@@ -118,7 +118,7 @@ func local_request_StkPushV1_GetStkTransaction_0(ctx context.Context, marshaler 
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "transaction_id")
 	}
 
-	protoReq.TransactionId, err = runtime.String(val)
+	protoReq.TransactionId, err = runtime.Uint64(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "transaction_id", err)
 	}

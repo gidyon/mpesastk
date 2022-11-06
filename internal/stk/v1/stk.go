@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -22,6 +21,7 @@ import (
 	redis "github.com/go-redis/redis/v8"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"gorm.io/gorm"
@@ -363,21 +363,14 @@ func (stkAPI *stkAPIServer) GetStkTransaction(
 	var key int
 	switch {
 	case req == nil:
-		return nil, errs.MissingField("GetStkTransactionRequest")
-	case req.TransactionId == "" && req.MpesaReceiptId == "":
+		return nil, errs.MissingField("request")
+	case req.TransactionId == 0 && req.MpesaReceiptId == "":
 		return nil, errs.MissingField("transaction/mpesa id")
-	default:
-		if req.TransactionId != "" {
-			key, err = strconv.Atoi(req.TransactionId)
-			if err != nil {
-				return nil, errs.WrapMessage(codes.InvalidArgument, "transaction id")
-			}
-		}
 	}
 
 	db := &STKTransaction{}
 
-	if req.TransactionId != "" {
+	if req.TransactionId != 0 {
 		err = stkAPI.SQLDB.First(db, "id=?", key).Error
 	} else if req.MpesaReceiptId != "" {
 		err = stkAPI.SQLDB.First(db, "mpesa_receipt_id=?", req.MpesaReceiptId).Error
@@ -385,7 +378,7 @@ func (stkAPI *stkAPIServer) GetStkTransaction(
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
-		return nil, errs.DoesNotExist("stk transaction", req.TransactionId)
+		return nil, status.Errorf(codes.NotFound, "stk transaction with id %d does not exist", req.TransactionId)
 	default:
 		stkAPI.Logger.Errorln(err)
 		return nil, errs.WrapMessage(codes.Internal, "failed to get stk transaction")
@@ -616,15 +609,8 @@ func (stkAPI *stkAPIServer) ProcessStkTransaction(
 	switch {
 	case req == nil:
 		return nil, errs.MissingField("process request")
-	case req.TransactionId == "" && req.MpesaReceiptId == "":
+	case req.TransactionId == 0 && req.MpesaReceiptId == "":
 		return nil, errs.MissingField("transaction/mpesa id")
-	default:
-		if req.TransactionId != "" {
-			key, err = strconv.Atoi(req.TransactionId)
-			if err != nil {
-				return nil, errs.WrapMessage(codes.InvalidArgument, "transaction id")
-			}
-		}
 	}
 
 	processed := "NO"
@@ -632,7 +618,7 @@ func (stkAPI *stkAPIServer) ProcessStkTransaction(
 		processed = "YES"
 	}
 
-	if req.TransactionId != "" {
+	if req.TransactionId != 0 {
 		err = stkAPI.SQLDB.Model(&STKTransaction{}).Unscoped().Where("id=?", key).
 			Update("processed", processed).Error
 	} else {

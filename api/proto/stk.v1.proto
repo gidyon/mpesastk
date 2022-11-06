@@ -192,7 +192,7 @@ message GetStkTransactionRequest {
     }
   };
 
-  string transaction_id = 1;
+  uint64 transaction_id = 1;
   string mpesa_receipt_id = 2;
 }
 
@@ -275,7 +275,7 @@ message ProcessStkTransactionRequest {
     }
   };
 
-  string transaction_id = 1;
+  uint64 transaction_id = 1;
   string mpesa_receipt_id = 2;
   bool processed = 3;
 }
@@ -300,8 +300,8 @@ message PublishMessage {
     }
   };
 
-  string initiator_id = 1;
-  string transaction_id = 2;
+  uint64 transaction_id = 1;
+  string initiator_id = 2;
   string mpesa_receipt_id = 3;
   string phone_number = 4;
   PublishInfo publish_info = 5;
