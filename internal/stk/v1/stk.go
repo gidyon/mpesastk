@@ -14,11 +14,11 @@ import (
 	"strings"
 	"time"
 
-	stk "bitbucket.org/gideonkamau/mpesastk/pkg/api/stk/v1"
 	auth "github.com/gidyon/gomicro/pkg/grpc/auth"
 	"github.com/gidyon/gomicro/utils/errs"
 	"github.com/gidyon/mpesapayments/pkg/utils/formatutil"
 	"github.com/gidyon/mpesapayments/pkg/utils/httputils"
+	stk "github.com/gidyon/mpesastk/pkg/api/stk/v1"
 	redis "github.com/go-redis/redis/v8"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"

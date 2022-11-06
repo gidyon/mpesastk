@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	stk "bitbucket.org/gideonkamau/mpesastk/pkg/api/stk/v1"
 	"github.com/gidyon/gomicro/utils/errs"
+	stk "github.com/gidyon/mpesastk/pkg/api/stk/v1"
 	"github.com/spf13/viper"
 )
 

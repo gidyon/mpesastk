@@ -12,9 +12,9 @@ import (
 	"sync"
 	"time"
 
-	stk "bitbucket.org/gideonkamau/mpesastk/pkg/api/stk/v1"
 	"github.com/gidyon/mpesapayments/pkg/payload"
 	"github.com/gidyon/mpesapayments/pkg/utils/httputils"
+	stk "github.com/gidyon/mpesastk/pkg/api/stk/v1"
 )
 
 func (stkAPI *stkAPIServer) updateAccessTokenWorker(ctx context.Context, dur time.Duration) {

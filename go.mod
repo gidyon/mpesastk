@@ -1,4 +1,4 @@
-module bitbucket.org/gideonkamau/mpesastk
+module github.com/gidyon/mpesastk
 
 go 1.18
 
