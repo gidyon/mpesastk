@@ -10,10 +10,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-func init() {
-	tablePrefix = viper.GetString("STK_TABLE_PREFIX")
-}
-
 // STKTransaction contains mpesa stk transaction details
 type STKTransaction struct {
 	ID                         uint         `gorm:"primaryKey;autoIncrement"`
@@ -46,13 +42,11 @@ type STKTransaction struct {
 // StkTable is table for mpesa payments
 const StkTable = "stk_transactions"
 
-var tablePrefix = ""
-
 // TableName returns the name of the table
 func (*STKTransaction) TableName() string {
 	// Get table prefix
-	if tablePrefix != "" {
-		return fmt.Sprintf("%s_%s", tablePrefix, StkTable)
+	if viper.GetString("STK_TABLE_PREFIX") != "" {
+		return fmt.Sprintf("%s_%s", viper.GetString("STK_TABLE_PREFIX"), StkTable)
 	}
 	return StkTable
 }
