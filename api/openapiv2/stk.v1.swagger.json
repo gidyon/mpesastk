@@ -1,0 +1,684 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "STK Mpesa Service",
+    "description": "API for initiating STK push and receiving payments",
+    "version": "v2",
+    "contact": {
+      "name": "Github \u003cGideon Kamau\u003e",
+      "url": "https://bitbucket.org/gideonkamau/mpesastk/main/api/proto/stk.proto",
+      "email": "gkamau@onfonmedia.com"
+    },
+    "license": {
+      "name": "GNU GENERAL PUBLIC LICENSE",
+      "url": "https://bitbucket.org/gideonkamau/mpesastk/main/LICENSE"
+    }
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/mpesastk": {
+      "get": {
+        "summary": "Retrieves a collection of stk transactions.",
+        "operationId": "StkPushV1_ListStkTransactions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/mpesastkListStkTransactionsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pageToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "filter.txDate",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter.msisdns",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "filter.mpesaReceipts",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "filter.initiatorCustomerReferences",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "filter.initiatorTransactionReferences",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "filter.shortCodes",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "filter.stkStatuses",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "STK_STATUS_UNKNOWN",
+                "STK_REQUEST_FAILED",
+                "STK_REQUEST_SUBMITED",
+                "STK_RESULT_SUCCESS",
+                "STK_RESULT_FAILED",
+                "STK_SUCCESS",
+                "STK_FAILED"
+              ]
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "filter.processState",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "STK_PROCESS_STATE_UNSPECIFIED",
+              "STK_PROCESSED",
+              "STK_NOT_PROCESSED"
+            ],
+            "default": "STK_PROCESS_STATE_UNSPECIFIED"
+          },
+          {
+            "name": "filter.startTimestamp",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "filter.endTimestamp",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "filter.orderField",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "STK_ORDER_FIELD_UNSPECIFIED",
+              "CREATE_TIMESTAMP",
+              "TRANSACTION_TIMESTAMP"
+            ],
+            "default": "STK_ORDER_FIELD_UNSPECIFIED"
+          }
+        ],
+        "tags": [
+          "StkPushV1"
+        ]
+      }
+    },
+    "/v1/mpesastk/{transactionId}": {
+      "get": {
+        "summary": "Retrieves a single stk transaction.",
+        "operationId": "StkPushV1_GetStkTransaction",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/mpesastkStkTransaction"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "transactionId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "mpesaReceiptId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "StkPushV1"
+        ]
+      }
+    },
+    "/v1/mpesastk:initiateSTK": {
+      "post": {
+        "summary": "Initiates mpesa stk.",
+        "operationId": "StkPushV1_InitiateSTK",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/mpesastkInitiateSTKResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/mpesastkInitiateSTKRequest"
+            }
+          }
+        ],
+        "tags": [
+          "StkPushV1"
+        ]
+      }
+    },
+    "/v1/mpesastk:processStkTransaction": {
+      "post": {
+        "summary": "Processes stk transaction updating its status.",
+        "operationId": "StkPushV1_ProcessStkTransaction",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/mpesastkProcessStkTransactionRequest"
+            }
+          }
+        ],
+        "tags": [
+          "StkPushV1"
+        ]
+      }
+    },
+    "/v1/mpesastk:publishStkTransaction": {
+      "post": {
+        "summary": "Publishes stk transaction to consumers.",
+        "operationId": "StkPushV1_PublishStkTransaction",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/mpesastkPublishStkTransactionRequest"
+            }
+          }
+        ],
+        "tags": [
+          "StkPushV1"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "mpesastkInitiateSTKRequest": {
+      "type": "object",
+      "properties": {
+        "initiatorId": {
+          "type": "string"
+        },
+        "initiatorTransactionReference": {
+          "type": "string"
+        },
+        "initiatorCustomerReference": {
+          "type": "string"
+        },
+        "initiatorCustomerNames": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number",
+          "format": "double"
+        },
+        "shortCode": {
+          "type": "string"
+        },
+        "accountReference": {
+          "type": "string"
+        },
+        "transactionDesc": {
+          "type": "string"
+        },
+        "publish": {
+          "type": "boolean"
+        },
+        "publishMessage": {
+          "$ref": "#/definitions/mpesastkPublishInfo"
+        }
+      },
+      "description": "Initiates a STK push payment to the specified phone number",
+      "title": "InitiateSTKRequest",
+      "required": [
+        "initiator_id",
+        "phone",
+        "amount"
+      ]
+    },
+    "mpesastkInitiateSTKResponse": {
+      "type": "object",
+      "properties": {
+        "progress": {
+          "type": "boolean"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "description": "Response after initiating STK push",
+      "title": "InitiateSTKResponse"
+    },
+    "mpesastkListStkTransactionFilter": {
+      "type": "object",
+      "properties": {
+        "txDate": {
+          "type": "string"
+        },
+        "msisdns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "mpesaReceipts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "initiatorCustomerReferences": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "initiatorTransactionReferences": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "shortCodes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "stkStatuses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/mpesastkStkStatus"
+          }
+        },
+        "processState": {
+          "$ref": "#/definitions/mpesastkStkProcessedState"
+        },
+        "startTimestamp": {
+          "type": "string",
+          "format": "int64"
+        },
+        "endTimestamp": {
+          "type": "string",
+          "format": "int64"
+        },
+        "orderField": {
+          "$ref": "#/definitions/mpesastkStkOrderField"
+        }
+      },
+      "description": "Filter payload for querying stk payloads",
+      "title": "ListStkTransactionFilter"
+    },
+    "mpesastkListStkTransactionsResponse": {
+      "type": "object",
+      "properties": {
+        "nextPageToken": {
+          "type": "string"
+        },
+        "stkTransactions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/mpesastkStkTransaction"
+          }
+        },
+        "collectionCount": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "description": "Reponse containing a collection of stk push payloads",
+      "title": "ListStkTransactionsResponse"
+    },
+    "mpesastkProcessStkTransactionRequest": {
+      "type": "object",
+      "properties": {
+        "transactionId": {
+          "type": "string"
+        },
+        "mpesaReceiptId": {
+          "type": "string"
+        },
+        "processed": {
+          "type": "boolean"
+        }
+      },
+      "description": "Request to update stk push processed state",
+      "title": "ProcessStkTransactionRequest"
+    },
+    "mpesastkPublishInfo": {
+      "type": "object",
+      "properties": {
+        "onlyOnSuccess": {
+          "type": "boolean"
+        },
+        "channelName": {
+          "type": "string"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "mpesastkPublishMessage": {
+      "type": "object",
+      "properties": {
+        "initiatorId": {
+          "type": "string"
+        },
+        "transactionId": {
+          "type": "string"
+        },
+        "mpesaReceiptId": {
+          "type": "string"
+        },
+        "phoneNumber": {
+          "type": "string"
+        },
+        "publishInfo": {
+          "$ref": "#/definitions/mpesastkPublishInfo"
+        },
+        "transactionInfo": {
+          "$ref": "#/definitions/mpesastkStkTransaction"
+        }
+      },
+      "description": "Published stk message to consumers",
+      "title": "PublishMessage"
+    },
+    "mpesastkPublishStkTransactionRequest": {
+      "type": "object",
+      "properties": {
+        "publishMessage": {
+          "$ref": "#/definitions/mpesastkPublishMessage"
+        },
+        "processedState": {
+          "$ref": "#/definitions/mpesastkStkProcessedState"
+        }
+      },
+      "description": "Request to publish a stk push payload",
+      "title": "PublishStkTransactionRequest"
+    },
+    "mpesastkStkOrderField": {
+      "type": "string",
+      "enum": [
+        "STK_ORDER_FIELD_UNSPECIFIED",
+        "CREATE_TIMESTAMP",
+        "TRANSACTION_TIMESTAMP"
+      ],
+      "default": "STK_ORDER_FIELD_UNSPECIFIED"
+    },
+    "mpesastkStkProcessedState": {
+      "type": "string",
+      "enum": [
+        "STK_PROCESS_STATE_UNSPECIFIED",
+        "STK_PROCESSED",
+        "STK_NOT_PROCESSED"
+      ],
+      "default": "STK_PROCESS_STATE_UNSPECIFIED"
+    },
+    "mpesastkStkStatus": {
+      "type": "string",
+      "enum": [
+        "STK_STATUS_UNKNOWN",
+        "STK_REQUEST_FAILED",
+        "STK_REQUEST_SUBMITED",
+        "STK_RESULT_SUCCESS",
+        "STK_RESULT_FAILED",
+        "STK_SUCCESS",
+        "STK_FAILED"
+      ],
+      "default": "STK_STATUS_UNKNOWN"
+    },
+    "mpesastkStkTransaction": {
+      "type": "object",
+      "properties": {
+        "transactionId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "initiatorId": {
+          "type": "string"
+        },
+        "initiatorCustomerReference": {
+          "type": "string"
+        },
+        "initiatorCustomerNames": {
+          "type": "string"
+        },
+        "shortCode": {
+          "type": "string"
+        },
+        "accountReference": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
+        },
+        "phoneNumber": {
+          "type": "string"
+        },
+        "transactionDesc": {
+          "type": "string"
+        },
+        "merchantRequestId": {
+          "type": "string"
+        },
+        "checkoutRequestId": {
+          "type": "string"
+        },
+        "stkResponseDescription": {
+          "type": "string"
+        },
+        "stkResponseCode": {
+          "type": "string"
+        },
+        "stkResultCode": {
+          "type": "string"
+        },
+        "stkResultDesc": {
+          "type": "string"
+        },
+        "mpesaReceiptId": {
+          "type": "string"
+        },
+        "balance": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/mpesastkStkStatus"
+        },
+        "source": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        },
+        "succeeded": {
+          "type": "boolean"
+        },
+        "processed": {
+          "type": "boolean"
+        },
+        "transactionTimestamp": {
+          "type": "string",
+          "format": "int64"
+        },
+        "createTimestamp": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "description": "Stk Push payload callback",
+      "title": "StkTransaction"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "bearer": {
+      "type": "apiKey",
+      "description": "Authentication token, prefixed by Bearer: Bearer \u003ctoken\u003e",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "bearer": []
+    }
+  ]
+}

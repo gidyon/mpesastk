@@ -1,0 +1,309 @@
+syntax = "proto3";
+
+package gidyon.mpesastk;
+
+option go_package = "bitbucket.org/gideonkamau/mpesastk/pkg/api/stk/v1;stk_v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/api/field_behaviour.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info : {title : "STK Mpesa Service";
+description : "API for initiating STK push and receiving payments"
+version : "v2";
+contact : {
+name:
+  "Github <Gideon Kamau>";
+url:
+  "https://bitbucket.org/gideonkamau/mpesastk/main/api/proto/stk.proto";
+email:
+  "gkamau@onfonmedia.com";
+};
+license : {
+name:
+  "GNU GENERAL PUBLIC LICENSE";
+url:
+  "https://bitbucket.org/gideonkamau/mpesastk/main/LICENSE";
+};
+}
+;
+schemes : HTTP;
+schemes : HTTPS;
+consumes : "application/json";
+produces : "application/json";
+security_definitions : {
+security : {
+key:
+  "bearer" value : {
+  type:
+    TYPE_API_KEY
+  in:
+    IN_HEADER
+  name:
+    "Authorization"
+    description : "Authentication token, prefixed by Bearer: Bearer <token>"
+  }
+}
+}
+security : {
+security_requirement : {
+key:
+  "bearer"
+}
+}
+}
+;
+
+service StkPushV1 {
+  // Initiates mpesa stk.
+  rpc InitiateSTK(InitiateSTKRequest) returns (InitiateSTKResponse) {
+    option (google.api.http) = {
+      post : "/v1/mpesastk:initiateSTK"
+      body : "*"
+    };
+  };
+
+  // Retrieves a single stk transaction.
+  rpc GetStkTransaction(GetStkTransactionRequest) returns (StkTransaction) {
+    option (google.api.http) = {
+      get : "/v1/mpesastk/{transaction_id}"
+    };
+  };
+
+  // Retrieves a collection of stk transactions.
+  rpc ListStkTransactions(ListStkTransactionsRequest)
+      returns (ListStkTransactionsResponse) {
+    option (google.api.http) = {
+      get : "/v1/mpesastk"
+    };
+  };
+
+  // Processes stk transaction updating its status.
+  rpc ProcessStkTransaction(ProcessStkTransactionRequest)
+      returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post : "/v1/mpesastk:processStkTransaction"
+      body : "*"
+    };
+  };
+
+  // Publishes stk transaction to consumers.
+  rpc PublishStkTransaction(PublishStkTransactionRequest)
+      returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post : "/v1/mpesastk:publishStkTransaction"
+      body : "*"
+    };
+  };
+}
+
+enum StkStatus {
+  STK_STATUS_UNKNOWN = 0;
+  STK_REQUEST_FAILED = 1;
+  STK_REQUEST_SUBMITED = 2;
+  STK_RESULT_SUCCESS = 3;
+  STK_RESULT_FAILED = 4;
+  STK_SUCCESS = 5;
+  STK_FAILED = 6;
+}
+
+message StkTransaction {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "StkTransaction"
+      description : "Stk Push payload callback"
+    }
+  };
+
+  uint64 transaction_id = 1;
+  string initiator_id = 2;
+  string initiator_customer_reference = 3;
+  string initiator_customer_names = 4;
+  string short_code = 5;
+  string account_reference = 6;
+  string amount = 7;
+  string phone_number = 8;
+  string transaction_desc = 9;
+  string merchant_request_id = 10;
+  string checkout_request_id = 11;
+  string stk_response_description = 12;
+  string stk_response_code = 13;
+  string stk_result_code = 14;
+  string stk_result_desc = 15;
+  string mpesa_receipt_id = 16;
+  string balance = 17;
+  StkStatus status = 18;
+  string source = 19;
+  string tag = 20;
+  bool succeeded = 21;
+  bool processed = 22;
+  int64 transaction_timestamp = 23;
+  int64 create_timestamp = 24;
+}
+
+message PublishInfo {
+  bool only_on_success = 1;
+  string channel_name = 2;
+  map<string, string> payload = 3;
+}
+
+message InitiateSTKRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "InitiateSTKRequest"
+      description : "Initiates a STK push payment to the specified phone number"
+      required : [ "initiator_id", "phone", "amount" ]
+    }
+  };
+
+  string initiator_id = 1 [ (google.api.field_behavior) = REQUIRED ];
+  string initiator_transaction_reference = 2;
+  string initiator_customer_reference = 3;
+  string initiator_customer_names = 4;
+  string phone = 5 [ (google.api.field_behavior) = REQUIRED ];
+  double amount = 6 [ (google.api.field_behavior) = REQUIRED ];
+  string short_code = 7 [ (google.api.field_behavior) = REQUIRED ];
+  string account_reference = 8 [ (google.api.field_behavior) = REQUIRED ];
+  string transaction_desc = 9;
+  bool publish = 10;
+  PublishInfo publish_message = 11;
+}
+
+message InitiateSTKResponse {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "InitiateSTKResponse"
+      description : "Response after initiating STK push"
+    }
+  };
+
+  bool progress = 1;
+  string message = 2;
+}
+
+message GetStkTransactionRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "GetStkTransactionRequest"
+      description : "Request to retrieve stk transaction"
+      required : [ "transaction_id" ]
+    }
+  };
+
+  string transaction_id = 1;
+  string mpesa_receipt_id = 2;
+}
+
+message CreateStkTransactionRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "CreateStkTransactionRequest"
+      description : "Request to create stk push payload"
+      required : [ "payload" ]
+    }
+  };
+
+  StkTransaction payload = 1 [ (google.api.field_behavior) = REQUIRED ];
+}
+
+enum StkOrderField {
+  STK_ORDER_FIELD_UNSPECIFIED = 0;
+  CREATE_TIMESTAMP = 1;
+  TRANSACTION_TIMESTAMP = 2;
+}
+
+enum StkProcessedState {
+  STK_PROCESS_STATE_UNSPECIFIED = 0;
+  STK_PROCESSED = 1;
+  STK_NOT_PROCESSED = 2;
+}
+
+message ListStkTransactionFilter {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "ListStkTransactionFilter"
+      description : "Filter payload for querying stk payloads"
+    }
+  };
+
+  string tx_date = 1;
+  repeated string msisdns = 2;
+  repeated string mpesa_receipts = 3;
+  repeated string initiator_customer_references = 4;
+  repeated string initiator_transaction_references = 5;
+  repeated string short_codes = 6;
+  repeated StkStatus stk_statuses = 7;
+  StkProcessedState process_state = 8;
+  int64 start_timestamp = 9;
+  int64 end_timestamp = 10;
+  StkOrderField order_field = 11;
+}
+
+message ListStkTransactionsRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "ListStkTransactionsRequest"
+      description : "Request to retrieve a collection of stk push payloads"
+    }
+  };
+
+  string page_token = 1;
+  int32 page_size = 2;
+  ListStkTransactionFilter filter = 3;
+}
+
+message ListStkTransactionsResponse {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "ListStkTransactionsResponse"
+      description : "Reponse containing a collection of stk push payloads"
+    }
+  };
+
+  string next_page_token = 1;
+  repeated StkTransaction stk_transactions = 2;
+  int64 collection_count = 3;
+}
+
+message ProcessStkTransactionRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "ProcessStkTransactionRequest"
+      description : "Request to update stk push processed state"
+    }
+  };
+
+  string transaction_id = 1;
+  string mpesa_receipt_id = 2;
+  bool processed = 3;
+}
+
+message PublishStkTransactionRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "PublishStkTransactionRequest"
+      description : "Request to publish a stk push payload"
+    }
+  };
+
+  PublishMessage publish_message = 1 [ (google.api.field_behavior) = REQUIRED ];
+  StkProcessedState processed_state = 2;
+}
+
+message PublishMessage {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "PublishMessage"
+      description : "Published stk message to consumers"
+    }
+  };
+
+  string initiator_id = 1;
+  string transaction_id = 2;
+  string mpesa_receipt_id = 3;
+  string phone_number = 4;
+  PublishInfo publish_info = 5;
+  StkTransaction transaction_info = 6;
+}
