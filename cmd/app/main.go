@@ -122,6 +122,12 @@ func main() {
 	// Add admins
 	authAPI.AddAdminGroups(viper.GetStringSlice("ADMIN_GROUPS")...)
 
+	// Update some details
+	kongauth.SetCacheExpiration(viper.GetDuration("KONG_AUTH_CACHE_EXPIRATION"))
+	kongauth.SetRedisAuthPrefix(viper.GetString("KONG_AUTH_REDIS_PREFIX"))
+	kongauth.SetUsersTable(viper.GetString("KONG_AUTH_TABLE"))
+	kongauth.SetTableSecretColumn(viper.GetString("KONG_AUTH_SECRET_COLUMN"))
+
 	// Authentication middleware
 	authUIs, authSIs := app_grpc_middleware.AddAuth(func(ctx context.Context) (context.Context, error) {
 		// Call custom auth implementation
