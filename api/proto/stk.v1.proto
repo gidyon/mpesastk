@@ -60,7 +60,7 @@ service StkPushV1 {
   // Initiates mpesa stk.
   rpc InitiateSTK(InitiateSTKRequest) returns (InitiateSTKResponse) {
     option (google.api.http) = {
-      post : "/v1/mpesastk:initiateSTK"
+      post : "/stk/v1:initiateSTK"
       body : "*"
     };
   };
@@ -68,7 +68,7 @@ service StkPushV1 {
   // Retrieves a single stk transaction.
   rpc GetStkTransaction(GetStkTransactionRequest) returns (StkTransaction) {
     option (google.api.http) = {
-      get : "/v1/mpesastk/{transaction_id}"
+      get : "/stk/v1/{transaction_id}"
     };
   };
 
@@ -76,7 +76,7 @@ service StkPushV1 {
   rpc ListStkTransactions(ListStkTransactionsRequest)
       returns (ListStkTransactionsResponse) {
     option (google.api.http) = {
-      get : "/v1/mpesastk"
+      get : "/stk/v1"
     };
   };
 
@@ -84,7 +84,7 @@ service StkPushV1 {
   rpc ProcessStkTransaction(ProcessStkTransactionRequest)
       returns (google.protobuf.Empty) {
     option (google.api.http) = {
-      post : "/v1/mpesastk:processStkTransaction"
+      post : "/stk/v1:processStkTransaction"
       body : "*"
     };
   };
@@ -93,7 +93,7 @@ service StkPushV1 {
   rpc PublishStkTransaction(PublishStkTransactionRequest)
       returns (google.protobuf.Empty) {
     option (google.api.http) = {
-      post : "/v1/mpesastk:publishStkTransaction"
+      post : "/stk/v1:publishStkTransaction"
       body : "*"
     };
   };

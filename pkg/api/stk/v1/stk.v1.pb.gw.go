@@ -505,15 +505,15 @@ func RegisterStkPushV1HandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 }
 
 var (
-	pattern_StkPushV1_InitiateSTK_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "mpesastk"}, "initiateSTK"))
+	pattern_StkPushV1_InitiateSTK_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"stk", "v1"}, "initiateSTK"))
 
-	pattern_StkPushV1_GetStkTransaction_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "mpesastk", "transaction_id"}, ""))
+	pattern_StkPushV1_GetStkTransaction_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"stk", "v1", "transaction_id"}, ""))
 
-	pattern_StkPushV1_ListStkTransactions_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "mpesastk"}, ""))
+	pattern_StkPushV1_ListStkTransactions_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"stk", "v1"}, ""))
 
-	pattern_StkPushV1_ProcessStkTransaction_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "mpesastk"}, "processStkTransaction"))
+	pattern_StkPushV1_ProcessStkTransaction_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"stk", "v1"}, "processStkTransaction"))
 
-	pattern_StkPushV1_PublishStkTransaction_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "mpesastk"}, "publishStkTransaction"))
+	pattern_StkPushV1_PublishStkTransaction_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"stk", "v1"}, "publishStkTransaction"))
 )
 
 var (

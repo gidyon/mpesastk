@@ -223,7 +223,7 @@ func main() {
 		errs.Panic(err)
 
 		// V1 endpoint
-		app.AddEndpointFunc("/v1/mpesastkIncoming", stkGateway.ServeStkV1)
+		app.AddEndpointFunc("/stk/incoming", stkGateway.ServeStkV1)
 		appLogger.Infof("STK callback path: %v", stkCallbackV1)
 
 		return nil

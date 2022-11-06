@@ -25,7 +25,7 @@
     "application/json"
   ],
   "paths": {
-    "/v1/mpesastk": {
+    "/stk/v1": {
       "get": {
         "summary": "Retrieves a collection of stk transactions.",
         "operationId": "StkPushV1_ListStkTransactions",
@@ -176,7 +176,7 @@
         ]
       }
     },
-    "/v1/mpesastk/{transactionId}": {
+    "/stk/v1/{transactionId}": {
       "get": {
         "summary": "Retrieves a single stk transaction.",
         "operationId": "StkPushV1_GetStkTransaction",
@@ -214,7 +214,7 @@
         ]
       }
     },
-    "/v1/mpesastk:initiateSTK": {
+    "/stk/v1:initiateSTK": {
       "post": {
         "summary": "Initiates mpesa stk.",
         "operationId": "StkPushV1_InitiateSTK",
@@ -247,7 +247,7 @@
         ]
       }
     },
-    "/v1/mpesastk:processStkTransaction": {
+    "/stk/v1:processStkTransaction": {
       "post": {
         "summary": "Processes stk transaction updating its status.",
         "operationId": "StkPushV1_ProcessStkTransaction",
@@ -280,7 +280,7 @@
         ]
       }
     },
-    "/v1/mpesastk:publishStkTransaction": {
+    "/stk/v1:publishStkTransaction": {
       "post": {
         "summary": "Publishes stk transaction to consumers.",
         "operationId": "StkPushV1_PublishStkTransaction",
