@@ -93,11 +93,10 @@ github.com/fsnotify/fsnotify v1.6.0/go.mod h1:sl3t1tCWJFWoRz9R8WJCbQihKKwmorjAbS
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/gidyon/gomicro v0.1.3 h1:CZjoyjFjR0CWyoEoYRgIo16krcBf5HrOV8ysolMWRug=
 github.com/gidyon/gomicro v0.1.3/go.mod h1:XDcgsh6bbTizEU+N1hQ1+y2wZZVMW5o7HZGu4OmE94g=
-github.com/gidyon/kongauth v0.0.1 h1:m8/OxavxmVb5eJsZx907zn8hdtrgThSCAVnjFh7jjwE=
-github.com/gidyon/kongauth v0.0.1/go.mod h1:frMLE057CiuccfwTH5YiPjSUhVUCi/adecS9iJhPeFs=
+github.com/gidyon/kongauth v0.0.4 h1:kXoBXCPBYKVRt08lSCVwqn/o55AG6jr+BqgKHSeLKBI=
+github.com/gidyon/kongauth v0.0.4/go.mod h1:BMzclC7OshHl0h2l2VBwUQoKP0aeFuTEIvdOjwDGTPw=
 github.com/gidyon/micro v1.4.4/go.mod h1:dVq+Mk697EJtHD5CcCtN5UpGK4z10c97+d9RLWIwRQg=
 github.com/gidyon/micro v1.7.0/go.mod h1:ymFeVrH8LBDsA3KnsjAgeRzHTLjhwCyNXPoUv+qFL24=
-github.com/gidyon/micro v1.12.0 h1:mkVfRjrDUsqah1Q3eHBDE2ZQ/HRAJ078T/VnToRd66U=
 github.com/gidyon/micro v1.12.0/go.mod h1:97VgiDsvudk3d/Pd040jFbS23qs5nFm+WybQnDRjVL4=
 github.com/gidyon/micro/v2 v2.5.7/go.mod h1:N5wRsUfuTTsrIk5mgBlFmixgQfZlrJiihMJ4gCDYEKU=
 github.com/gidyon/mpesapayments v1.2.8 h1:rA8fx5Z1TOEhZ/tQOikpP3DZDsYIs0Dr258nIF6vYQI=
