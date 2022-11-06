@@ -181,12 +181,13 @@ func (stkAPI *stkAPIServer) updateSTKResult(_ context.Context, db *STKTransactio
 		return errors.New("gotten error while posting to query stk API")
 	}
 
-	succeeded := "NO"
-	status := stk.StkStatus_STK_RESULT_FAILED.String()
-	if resData.ResultCode == "0" && strings.Contains(strings.ToLower(resData.ResultDesc), "successfully") {
-		succeeded = "YES"
-		status = stk.StkStatus_STK_RESULT_SUCCESS.String()
+	succeeded := resData.ResultCode == "0" && strings.Contains(strings.ToLower(resData.ResultDesc), "successfully")
+	status := stk.StkStatus_STK_RESULT_SUCCESS.String()
+	if !succeeded {
+		succeeded = false
+		status = stk.StkStatus_STK_RESULT_FAILED.String()
 	}
+
 	systemId := fmt.Sprintf("ONFON_%d_%s", time.Now().UnixNano(), db.MerchantRequestID)
 
 	switch strings.ToLower(res.Header.Get("content-type")) {
