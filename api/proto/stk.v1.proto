@@ -57,6 +57,14 @@ key:
 ;
 
 service StkPushV1 {
+  // Triggers mpesa stk.
+  rpc TriggerSTK(InitiateSTKRequest) returns (InitiateSTKResponse) {
+    option (google.api.http) = {
+      post : "/stk/v1:triggerStk"
+      body : "*"
+    };
+  };
+
   // Initiates mpesa stk.
   rpc InitiateSTK(InitiateSTKRequest) returns (InitiateSTKResponse) {
     option (google.api.http) = {
@@ -68,7 +76,7 @@ service StkPushV1 {
   // Retrieves a single stk transaction.
   rpc GetStkTransaction(GetStkTransactionRequest) returns (StkTransaction) {
     option (google.api.http) = {
-      get : "/stk/v1/{transaction_id}"
+      get : "/stk/v1/ {transaction_id}"
     };
   };
 
@@ -147,6 +155,38 @@ message PublishInfo {
   bool only_on_success = 1;
   string channel_name = 2;
   map<string, string> payload = 3;
+}
+
+message TriggerSTKRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "TriggerSTKRequest"
+      description : "Request that will send stk to client"
+      required : [ "initiator_id", "phone", "amount" ]
+    }
+  };
+
+  string phone = 1 [ (google.api.field_behavior) = REQUIRED ];
+  double amount = 2 [ (google.api.field_behavior) = REQUIRED ];
+  string account_reference = 3 [ (google.api.field_behavior) = REQUIRED ];
+  string transaction_desc = 4;
+  int64 wait_dur = 5;
+}
+
+message TriggerSTKResponse {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "TriggerSTKRequest"
+      description : "Request that will send stk to client"
+      required : [ "initiator_id", "phone", "amount" ]
+    }
+  };
+
+  string phone = 1 [ (google.api.field_behavior) = REQUIRED ];
+  double amount = 2 [ (google.api.field_behavior) = REQUIRED ];
+  string account_reference = 3 [ (google.api.field_behavior) = REQUIRED ];
+  string transaction_desc = 4;
+  int64 wait_dur = 5;
 }
 
 message InitiateSTKRequest {

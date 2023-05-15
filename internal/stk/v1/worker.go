@@ -18,18 +18,26 @@ import (
 )
 
 func (stkAPI *stkAPIServer) updateAccessTokenWorker(ctx context.Context, dur time.Duration) {
-	var err error
+	var (
+		err    error
+		xdur   = dur
+		expo   = time.Second * 10
+		ticker = time.NewTicker(xdur)
+	)
 	for {
-		err = stkAPI.updateAccessToken()
-		if err != nil {
-			stkAPI.Logger.Errorf("failed to update access token: %v", err)
-		} else {
-			stkAPI.Logger.Infoln("access token updated")
-		}
 		select {
 		case <-ctx.Done():
 			return
-		case <-time.After(dur):
+		case <-ticker.C:
+			err = stkAPI.updateAccessToken()
+			if err != nil {
+				stkAPI.Logger.Errorf("failed to update access token: %v", err)
+				ticker.Reset(expo + xdur)
+				expo = expo * 2
+			} else {
+				stkAPI.Logger.Infoln("access token updated")
+				ticker.Reset(dur)
+			}
 		}
 	}
 }
