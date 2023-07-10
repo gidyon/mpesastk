@@ -12,31 +12,33 @@ import (
 
 // STKTransaction contains mpesa stk transaction details
 type STKTransaction struct {
-	ID                         uint         `gorm:"primaryKey;autoIncrement"`
-	InitiatorID                string       `gorm:"index;type:varchar(50)"`
-	InitiatorCustomerReference string       `gorm:"index;type:varchar(50)"`
-	InitiatorCustomerNames     string       `gorm:"type:varchar(50)"`
-	PhoneNumber                string       `gorm:"index;type:varchar(15);not null"`
-	Amount                     string       `gorm:"type:float(10);not null"`
-	ShortCode                  string       `gorm:"index;type:varchar(15)"`
-	AccountReference           string       `gorm:"index;type:varchar(50)"`
-	TransactionDesc            string       `gorm:"type:varchar(300)"`
-	MerchantRequestID          string       `gorm:"index;type:varchar(50);"`
-	CheckoutRequestID          string       `gorm:"index;type:varchar(50);"`
-	StkResponseDescription     string       `gorm:"type:varchar(300)"`
-	StkResponseCustomerMessage string       `gorm:"type:varchar(300)"`
-	StkResponseCode            string       `gorm:"index;type:varchar(10)"`
-	ResultCode                 string       `gorm:"index;type:varchar(10)"`
-	ResultDescription          string       `gorm:"type:varchar(300)"`
-	MpesaReceiptId             string       `gorm:"index;type:varchar(50);unique"`
-	StkStatus                  string       `gorm:"index;type:varchar(30)"`
-	Source                     string       `gorm:"index;type:varchar(30)"`
-	Tag                        string       `gorm:"index;type:varchar(30)"`
-	Succeeded                  bool         `gorm:"index;type:tinyint(1)"`
-	Processed                  bool         `gorm:"index;type:tinyint(1)"`
-	TransactionTime            sql.NullTime `gorm:"index;type:datetime(6)"`
-	UpdatedAt                  time.Time    `gorm:"autoUpdateTime;type:datetime(6)"`
-	CreatedAt                  time.Time    `gorm:"index;autoCreateTime;primaryKey;type:datetime(6);not null"`
+	ID                         uint   `gorm:"primaryKey;autoIncrement"`
+	InitiatorID                string `gorm:"index;type:varchar(50)"`
+	InitiatorCustomerReference string `gorm:"index;type:varchar(50)"`
+	InitiatorCustomerNames     string `gorm:"type:varchar(50)"`
+	PhoneNumber                string `gorm:"index;type:varchar(15);not null"`
+	Amount                     string `gorm:"type:float(10);not null"`
+	ShortCode                  string `gorm:"index;type:varchar(15)"`
+	AccountReference           string `gorm:"index;type:varchar(50)"`
+	TransactionDesc            string `gorm:"type:varchar(300)"`
+	MerchantRequestID          string `gorm:"index;type:varchar(50);"`
+	CheckoutRequestID          string `gorm:"index;type:varchar(50);"`
+	StkResponseDescription     string `gorm:"type:varchar(300)"`
+	StkResponseCustomerMessage string `gorm:"type:varchar(300)"`
+	StkResponseCode            string `gorm:"index;type:varchar(10)"`
+	ResultCode                 string `gorm:"index;type:varchar(10)"`
+	ResultDescription          string `gorm:"type:varchar(300)"`
+	MpesaReceiptId             string `gorm:"index;type:varchar(50);unique"`
+	StkStatus                  string `gorm:"index;type:varchar(30)"`
+	Source                     string `gorm:"index;type:varchar(30)"`
+	Tag                        string `gorm:"index;type:varchar(30)"`
+	// Succeeded                  bool         `gorm:"index;type:tinyint(1)"`
+	// Processed                  bool         `gorm:"index;type:tinyint(1)"`
+	Succeeded       string       `gorm:"index;type:enum('YES','NO');default:NO"`
+	Processed       string       `gorm:"index;type:enum('YES','NO');default:NO"`
+	TransactionTime sql.NullTime `gorm:"index;type:datetime(6)"`
+	UpdatedAt       time.Time    `gorm:"autoUpdateTime;type:datetime(6)"`
+	CreatedAt       time.Time    `gorm:"index;autoCreateTime;primaryKey;type:datetime(6);not null"`
 }
 
 // StkTable is table for mpesa payments
@@ -78,8 +80,8 @@ func ToProto(db *STKTransaction) (*stk.StkTransaction, error) {
 		Status:                     stk.StkStatus(stk.StkStatus_value[db.StkStatus]),
 		Source:                     db.Source,
 		Tag:                        db.Tag,
-		Succeeded:                  db.Succeeded,
-		Processed:                  db.Processed,
+		Succeeded:                  db.Succeeded == "YES",
+		Processed:                  db.Processed == "YES",
 		TransactionTimestamp:       db.TransactionTime.Time.UTC().Unix(),
 		CreateTimestamp:            db.CreatedAt.UTC().Unix(),
 	}

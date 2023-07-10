@@ -321,8 +321,8 @@ func (stkAPI *stkAPIServer) InitiateSTK(
 				StkStatus:                  stk.StkStatus_STK_REQUEST_SUBMITED.String(),
 				Source:                     "",
 				Tag:                        "",
-				Succeeded:                  false,
-				Processed:                  false,
+				Succeeded:                  "NO",
+				Processed:                  "NO",
 				TransactionTime:            sql.NullTime{Valid: true, Time: time.Now().UTC()},
 				CreatedAt:                  time.Time{},
 			}).Error
@@ -530,7 +530,7 @@ func (stkAPI *stkAPIServer) ListStkTransactions(
 
 	var collectionCount int64
 
-	if pageToken == "" {
+	if pageToken == "" && req.View == stk.ListStkTransactionsView_BASIC_VIEW {
 		err = db.Count(&collectionCount).Error
 		if err != nil {
 			stkAPI.Logger.Errorln(err)

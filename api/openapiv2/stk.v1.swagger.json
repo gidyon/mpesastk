@@ -169,6 +169,18 @@
               "TRANSACTION_TIMESTAMP"
             ],
             "default": "STK_ORDER_FIELD_UNSPECIFIED"
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "BASIC_VIEW",
+              "DATA_ONLY_VIEW",
+              "MINIMAL_VIEW"
+            ],
+            "default": "BASIC_VIEW"
           }
         ],
         "tags": [
@@ -453,6 +465,15 @@
       },
       "description": "Reponse containing a collection of stk push payloads",
       "title": "ListStkTransactionsResponse"
+    },
+    "mpesastkListStkTransactionsView": {
+      "type": "string",
+      "enum": [
+        "BASIC_VIEW",
+        "DATA_ONLY_VIEW",
+        "MINIMAL_VIEW"
+      ],
+      "default": "BASIC_VIEW"
     },
     "mpesastkProcessStkTransactionRequest": {
       "type": "object",

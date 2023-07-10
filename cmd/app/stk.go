@@ -178,6 +178,11 @@ func (gw *stkGateway) serveStkV1(w http.ResponseWriter, r *http.Request) (int, e
 	case errors.Is(err, gorm.ErrRecordNotFound):
 		// Create STK transaction
 		{
+			success := "NO"
+			if stkPayload.Body.STKCallback.ResultCode != 0 {
+				success = "YES"
+			}
+
 			db = &stk_app_v1.STKTransaction{
 				ID:                         0,
 				InitiatorID:                initReq.GetInitiatorId(),
@@ -199,8 +204,8 @@ func (gw *stkGateway) serveStkV1(w http.ResponseWriter, r *http.Request) (int, e
 				StkStatus:                  status,
 				Source:                     "",
 				Tag:                        "",
-				Succeeded:                  stkPayload.Body.STKCallback.ResultCode != 0,
-				Processed:                  false,
+				Succeeded:                  success,
+				Processed:                  "NO",
 				TransactionTime:            sql.NullTime{Valid: true, Time: stkPayload.Body.STKCallback.CallbackMetadata.GetTransTime()},
 				CreatedAt:                  time.Time{},
 			}
