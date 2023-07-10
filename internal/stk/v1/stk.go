@@ -166,7 +166,7 @@ func NewStkAPI(ctx context.Context, opt *Options) (_ stk.StkPushV1Server, err er
 		}
 	}
 
-	dur := time.Minute * 45
+	dur := time.Minute * 15
 	if opt.UpdateAccessTokenDuration > 0 {
 		dur = opt.UpdateAccessTokenDuration
 	}
@@ -235,6 +235,7 @@ func (stkAPI *stkAPIServer) InitiateSTK(
 			AccountReference:  accountRef,
 			TransactionDesc:   firstVal(req.TransactionDesc, "NA"),
 		}
+		err error
 	)
 
 	if req.PublishMessage == nil {
@@ -249,102 +250,129 @@ func (stkAPI *stkAPIServer) InitiateSTK(
 
 	req.PublishMessage.Payload["short_code"] = shortCode
 
+	// Marshal request
 	bs, err := json.Marshal(pb)
 	if err != nil {
 		return nil, errs.FromJSONMarshal(err, "pb")
 	}
 
+	// Create Mpesa STK request
 	reqHtpp, err := http.NewRequest(http.MethodPost, stkAPI.OptionSTK.PostURL, bytes.NewReader(bs))
 	if err != nil {
 		return nil, errs.WrapMessage(codes.Internal, "failed to create post stk request")
 	}
 
+	// Update headers
 	reqHtpp.Header.Set("Authorization", fmt.Sprintf("Bearer %s", stkAPI.OptionSTK.accessToken))
 	reqHtpp.Header.Set("Content-Type", "application/json")
 
 	httputils.DumpRequest(reqHtpp, "INITIATE STK REQUEST")
 
+	// STK model
+	db := &STKTransaction{
+		ID:                         0,
+		InitiatorID:                req.InitiatorId,
+		InitiatorCustomerReference: req.InitiatorCustomerReference,
+		InitiatorCustomerNames:     req.InitiatorCustomerNames,
+		PhoneNumber:                phoneNumber,
+		Amount:                     fmt.Sprint(req.Amount),
+		ShortCode:                  shortCode,
+		AccountReference:           accountRef,
+		TransactionDesc:            sql.NullString{String: req.TransactionDesc, Valid: true},
+		StkStatus:                  sql.NullString{String: stk.StkStatus_STK_REQUEST_SUBMITED.String(), Valid: true},
+		TransactionTime:            sql.NullTime{Valid: true, Time: time.Now().UTC()},
+		CreatedAt:                  time.Time{},
+	}
+
+	// Save the request to database
+	err = stkAPI.SQLDB.Create(db).Error
+	if err != nil {
+		stkAPI.Logger.Errorln(err)
+		return nil, errs.WrapMessage(codes.Internal, "failed to save stk")
+	}
+
 	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-		defer cancel()
+		err := func() error {
+			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+			defer cancel()
 
-		res, err := stkAPI.HTTPClient.Do(reqHtpp)
-		if err != nil {
-			stkAPI.Logger.Errorf("Failed to post stk request to mpesa API: %v", err)
-			return
-		}
-
-		httputils.DumpResponse(res, "INITIATE STK RESPONSE")
-
-		resData := make(map[string]interface{})
-
-		err = json.NewDecoder(res.Body).Decode(&resData)
-		if err != nil && err != io.EOF {
-			stkAPI.Logger.Errorf("Failed to decode mpesa response: %v", err)
-			return
-		}
-
-		errMsg, ok := resData["errorMessage"]
-		if ok {
-			stkAPI.Logger.Errorf("Error happened while sending stk push: %v", errMsg)
-			return
-		}
-
-		switch strings.ToLower(res.Header.Get("content-type")) {
-		case "application/json", "application/json;charset=utf-8":
-			// The CheckoutRequestID must exist
-			_, ok := resData["CheckoutRequestID"].(string)
-			if !ok {
-				stkAPI.Logger.Errorln("STK request failed: ", err)
-				return
+			res, err := stkAPI.HTTPClient.Do(reqHtpp)
+			if err != nil {
+				return fmt.Errorf("failed to post stk request to mpesa API: %v", err)
 			}
 
-			// Save the request to database
-			err = stkAPI.SQLDB.Create(&STKTransaction{
-				ID:                         0,
-				InitiatorID:                req.InitiatorId,
-				InitiatorCustomerReference: req.InitiatorCustomerReference,
-				InitiatorCustomerNames:     req.InitiatorCustomerNames,
-				PhoneNumber:                phoneNumber,
-				Amount:                     fmt.Sprint(req.Amount),
-				ShortCode:                  shortCode,
-				AccountReference:           accountRef,
-				TransactionDesc:            req.TransactionDesc,
-				MerchantRequestID:          fmt.Sprint(resData["MerchantRequestID"]),
-				CheckoutRequestID:          fmt.Sprint(resData["CheckoutRequestID"]),
-				StkResponseDescription:     fmt.Sprint(resData["ResponseDescription"]),
-				StkResponseCustomerMessage: fmt.Sprint(resData["CustomerMessage"]),
-				StkResponseCode:            fmt.Sprint(resData["ResponseCode"]),
-				ResultCode:                 "",
-				ResultDescription:          "",
-				MpesaReceiptId:             "",
-				StkStatus:                  stk.StkStatus_STK_REQUEST_SUBMITED.String(),
-				Source:                     "",
-				Tag:                        "",
-				Succeeded:                  "NO",
-				Processed:                  "NO",
-				TransactionTime:            sql.NullTime{Valid: true, Time: time.Now().UTC()},
-				CreatedAt:                  time.Time{},
+			httputils.DumpResponse(res, "INITIATE STK RESPONSE")
+
+			resData := make(map[string]interface{})
+
+			err = json.NewDecoder(res.Body).Decode(&resData)
+			if err != nil && err != io.EOF {
+				return fmt.Errorf("failed to decode mpesa response: %v", err)
+			}
+
+			errMsg, ok := resData["errorMessage"]
+			if ok {
+				return fmt.Errorf("error happened while sending stk push: %v", errMsg)
+			}
+
+			switch strings.ToLower(res.Header.Get("content-type")) {
+			case "application/json", "application/json;charset=utf-8":
+				// The CheckoutRequestID must exist
+				_, ok := resData["CheckoutRequestID"].(string)
+				if !ok {
+					return errors.New("stk request failed: missing CheckoutRequestID")
+				}
+
+				// Update STK
+				err = stkAPI.SQLDB.Model(db).Updates(&STKTransaction{
+					MerchantRequestID:          sql.NullString{String: fmt.Sprint(resData["MerchantRequestID"]), Valid: fmt.Sprint(resData["MerchantRequestID"]) != ""},
+					CheckoutRequestID:          sql.NullString{String: fmt.Sprint(resData["CheckoutRequestID"]), Valid: fmt.Sprint(resData["CheckoutRequestID"]) != ""},
+					StkResponseDescription:     sql.NullString{String: fmt.Sprint(resData["ResponseDescription"]), Valid: fmt.Sprint(resData["ResponseDescription"]) != ""},
+					StkResponseCustomerMessage: sql.NullString{String: fmt.Sprint(resData["CustomerMessage"]), Valid: fmt.Sprint(resData["CustomerMessage"]) != ""},
+					StkResponseCode:            sql.NullString{String: fmt.Sprint(resData["ResponseCode"]), Valid: fmt.Sprint(resData["ResponseCode"]) != ""},
+					StkStatus:                  sql.NullString{String: stk.StkStatus_STK_REQUEST_SUCCESS.String(), Valid: true},
+					Succeeded:                  "NO",
+					Processed:                  "NO",
+					TransactionTime:            sql.NullTime{Valid: true, Time: time.Now().UTC()},
+					CreatedAt:                  time.Time{},
+				}).Error
+				if err != nil {
+					stkAPI.Logger.Errorln(err)
+					return errors.New("failed to update stk payload")
+				}
+
+				// Marshal request
+				bs, err := proto.Marshal(req)
+				if err != nil {
+					return fmt.Errorf("failed to proto marshal initiate stk request: %v", err)
+				}
+
+				requestId := GetMpesaRequestKey(fmt.Sprint(resData["CheckoutRequestID"]))
+
+				// Save request to cache
+				err = stkAPI.RedisDB.Set(ctx, requestId, bs, time.Minute*15).Err()
+				if err != nil {
+					return fmt.Errorf("failed to set initiate stk request to cache: %v", err)
+				}
+			default:
+				return errors.New("incorrect response while initiating STK")
+			}
+
+			return nil
+		}()
+		if err != nil {
+			// Update status to failed
+			err = stkAPI.SQLDB.Model(db).Updates(&STKTransaction{
+				StkResponseDescription: sql.NullString{String: err.Error(), Valid: true},
+				StkStatus:              sql.NullString{String: stk.StkStatus_STK_REQUEST_FAILED.String(), Valid: true},
+				Succeeded:              "NO",
+				Processed:              "NO",
+				TransactionTime:        sql.NullTime{Valid: true, Time: time.Now().UTC()},
+				CreatedAt:              time.Time{},
 			}).Error
 			if err != nil {
-				stkAPI.Logger.Errorln("Failed to create stk payload: ", err)
+				stkAPI.Logger.Errorln(err)
 			}
-
-			bs, err := proto.Marshal(req)
-			if err != nil {
-				stkAPI.Logger.Errorln("Failed to proto marshal InitiateStk Request: ", err)
-				return
-			}
-
-			requestId := GetMpesaRequestKey(fmt.Sprint(resData["CheckoutRequestID"]))
-
-			err = stkAPI.RedisDB.Set(ctx, requestId, bs, time.Minute*15).Err()
-			if err != nil {
-				stkAPI.Logger.Errorln("Failed to set InitiateStk Request to cache: ", err)
-				return
-			}
-		default:
-			stkAPI.Logger.Errorln("Incorrect Response while initiating STK")
 		}
 	}()
 

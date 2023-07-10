@@ -122,8 +122,9 @@
               "type": "string",
               "enum": [
                 "STK_STATUS_UNKNOWN",
-                "STK_REQUEST_FAILED",
                 "STK_REQUEST_SUBMITED",
+                "STK_REQUEST_FAILED",
+                "STK_REQUEST_SUCCESS",
                 "STK_RESULT_SUCCESS",
                 "STK_RESULT_FAILED",
                 "STK_SUCCESS",
@@ -570,8 +571,9 @@
       "type": "string",
       "enum": [
         "STK_STATUS_UNKNOWN",
-        "STK_REQUEST_FAILED",
         "STK_REQUEST_SUBMITED",
+        "STK_REQUEST_FAILED",
+        "STK_REQUEST_SUCCESS",
         "STK_RESULT_SUCCESS",
         "STK_RESULT_FAILED",
         "STK_SUCCESS",

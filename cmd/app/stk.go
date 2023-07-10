@@ -87,7 +87,7 @@ func NewSTKGateway(ctx context.Context, opt *Options) (*stkGateway, error) {
 func (gw *stkGateway) ServeStkV1(w http.ResponseWriter, r *http.Request) {
 	code, err := gw.serveStkV1(w, r)
 	if err != nil {
-		gw.Logger.Errorf("Error serving incoming Stk V2 Transaction %v", err)
+		gw.Logger.Errorf("Error serving incoming Stk V1 Transaction %v", err)
 		http.Error(w, "request handler failed", code)
 	}
 }
@@ -164,11 +164,11 @@ func (gw *stkGateway) serveStkV1(w http.ResponseWriter, r *http.Request) (int, e
 		// Update STK transaction
 		{
 			err = gw.SQLDB.Model(db).Updates(map[string]interface{}{
-				"result_code":        fmt.Sprint(stkPayload.Body.STKCallback.ResultCode),
-				"result_description": stkPayload.Body.STKCallback.ResultDesc,
-				"mpesa_receipt_id":   firstVal(db.MpesaReceiptId, stkPayload.Body.STKCallback.CallbackMetadata.MpesaReceiptNumber()),
+				"result_code":        sql.NullString{String: fmt.Sprint(stkPayload.Body.STKCallback.ResultCode), Valid: fmt.Sprint(stkPayload.Body.STKCallback.ResultCode) != ""},
+				"result_description": sql.NullString{String: stkPayload.Body.STKCallback.ResultDesc, Valid: stkPayload.Body.STKCallback.ResultDesc != ""},
+				"mpesa_receipt_id":   sql.NullString{String: firstVal(stkPayload.Body.STKCallback.CallbackMetadata.MpesaReceiptNumber(), db.MpesaReceiptId.String), Valid: firstVal(stkPayload.Body.STKCallback.CallbackMetadata.MpesaReceiptNumber(), db.MpesaReceiptId.String) != ""},
 				"transaction_time":   sql.NullTime{Valid: true, Time: stkPayload.Body.STKCallback.CallbackMetadata.GetTransTime()},
-				"stk_status":         status,
+				"stk_status":         sql.NullString{String: status, Valid: true},
 				"succeeded":          succeeded,
 			}).Error
 			if err != nil {
@@ -192,18 +192,13 @@ func (gw *stkGateway) serveStkV1(w http.ResponseWriter, r *http.Request) (int, e
 				Amount:                     fmt.Sprint(stkPayload.Body.STKCallback.CallbackMetadata.GetAmount()),
 				ShortCode:                  initReq.PublishMessage.Payload["short_code"],
 				AccountReference:           initReq.GetAccountReference(),
-				TransactionDesc:            initReq.GetTransactionDesc(),
-				MerchantRequestID:          stkPayload.Body.STKCallback.MerchantRequestID,
-				CheckoutRequestID:          stkPayload.Body.STKCallback.MerchantRequestID,
-				StkResponseDescription:     "",
-				StkResponseCustomerMessage: "",
-				StkResponseCode:            "",
-				ResultCode:                 fmt.Sprint(stkPayload.Body.STKCallback.ResultCode),
-				ResultDescription:          stkPayload.Body.STKCallback.ResultDesc,
-				MpesaReceiptId:             stkPayload.Body.STKCallback.CallbackMetadata.MpesaReceiptNumber(),
-				StkStatus:                  status,
-				Source:                     "",
-				Tag:                        "",
+				TransactionDesc:            sql.NullString{String: initReq.GetTransactionDesc(), Valid: initReq.GetTransactionDesc() != ""},
+				MerchantRequestID:          sql.NullString{String: stkPayload.Body.STKCallback.MerchantRequestID, Valid: stkPayload.Body.STKCallback.MerchantRequestID != ""},
+				CheckoutRequestID:          sql.NullString{String: stkPayload.Body.STKCallback.MerchantRequestID, Valid: stkPayload.Body.STKCallback.MerchantRequestID != ""},
+				ResultCode:                 sql.NullString{String: fmt.Sprint(stkPayload.Body.STKCallback.ResultCode), Valid: fmt.Sprint(stkPayload.Body.STKCallback.ResultCode) != ""},
+				ResultDescription:          sql.NullString{String: stkPayload.Body.STKCallback.ResultDesc, Valid: stkPayload.Body.STKCallback.ResultDesc != ""},
+				MpesaReceiptId:             sql.NullString{String: stkPayload.Body.STKCallback.CallbackMetadata.MpesaReceiptNumber(), Valid: stkPayload.Body.STKCallback.CallbackMetadata.MpesaReceiptNumber() != ""},
+				StkStatus:                  sql.NullString{String: status, Valid: status != ""},
 				Succeeded:                  success,
 				Processed:                  "NO",
 				TransactionTime:            sql.NullTime{Valid: true, Time: stkPayload.Body.STKCallback.CallbackMetadata.GetTransTime()},

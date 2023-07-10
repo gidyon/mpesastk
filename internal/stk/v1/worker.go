@@ -19,16 +19,11 @@ import (
 
 func (stkAPI *stkAPIServer) updateAccessTokenWorker(ctx context.Context, dur time.Duration) {
 	var (
-		err    error
-		xdur   = dur
-		expo   = time.Second * 10
-		ticker = time.NewTicker(xdur)
-	)
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
+		err      error
+		xdur     = dur
+		expo     = time.Second * 10
+		ticker   = time.NewTicker(xdur)
+		callback = func() {
 			err = stkAPI.updateAccessToken()
 			if err != nil {
 				stkAPI.Logger.Errorf("failed to update access token: %v", err)
@@ -38,6 +33,17 @@ func (stkAPI *stkAPIServer) updateAccessTokenWorker(ctx context.Context, dur tim
 				stkAPI.Logger.Infoln("access token updated")
 				ticker.Reset(dur)
 			}
+		}
+	)
+
+	callback()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			callback()
 		}
 	}
 }
@@ -153,7 +159,7 @@ func (stkAPI *stkAPIServer) updateSTKResult(_ context.Context, db *STKTransactio
 		BusinessShortCode: db.ShortCode,
 		Password:          stkAPI.OptionSTK.password,
 		Timestamp:         stkAPI.OptionSTK.Timestamp,
-		CheckoutRequestID: db.CheckoutRequestID,
+		CheckoutRequestID: db.CheckoutRequestID.String,
 	}
 
 	bs, err := json.Marshal(req)

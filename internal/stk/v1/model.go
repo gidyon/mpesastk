@@ -12,26 +12,26 @@ import (
 
 // STKTransaction contains mpesa stk transaction details
 type STKTransaction struct {
-	ID                         uint   `gorm:"primaryKey;autoIncrement"`
-	InitiatorID                string `gorm:"index;type:varchar(50)"`
-	InitiatorCustomerReference string `gorm:"index;type:varchar(50)"`
-	InitiatorCustomerNames     string `gorm:"type:varchar(50)"`
-	PhoneNumber                string `gorm:"index;type:varchar(15);not null"`
-	Amount                     string `gorm:"type:float(10);not null"`
-	ShortCode                  string `gorm:"index;type:varchar(15)"`
-	AccountReference           string `gorm:"index;type:varchar(50)"`
-	TransactionDesc            string `gorm:"type:varchar(300)"`
-	MerchantRequestID          string `gorm:"index;type:varchar(50);"`
-	CheckoutRequestID          string `gorm:"index;type:varchar(50);"`
-	StkResponseDescription     string `gorm:"type:varchar(300)"`
-	StkResponseCustomerMessage string `gorm:"type:varchar(300)"`
-	StkResponseCode            string `gorm:"index;type:varchar(10)"`
-	ResultCode                 string `gorm:"index;type:varchar(10)"`
-	ResultDescription          string `gorm:"type:varchar(300)"`
-	MpesaReceiptId             string `gorm:"index;type:varchar(50);unique"`
-	StkStatus                  string `gorm:"index;type:varchar(30)"`
-	Source                     string `gorm:"index;type:varchar(30)"`
-	Tag                        string `gorm:"index;type:varchar(30)"`
+	ID                         uint           `gorm:"primaryKey;autoIncrement"`
+	InitiatorID                string         `gorm:"index;type:varchar(50)"`
+	InitiatorCustomerReference string         `gorm:"index;type:varchar(50)"`
+	InitiatorCustomerNames     string         `gorm:"type:varchar(50)"`
+	PhoneNumber                string         `gorm:"index;type:varchar(15);not null"`
+	Amount                     string         `gorm:"type:float(10);not null"`
+	ShortCode                  string         `gorm:"index;type:varchar(15)"`
+	AccountReference           string         `gorm:"index;type:varchar(50)"`
+	TransactionDesc            sql.NullString `gorm:"type:varchar(300)"`
+	MerchantRequestID          sql.NullString `gorm:"index;type:varchar(50);"`
+	CheckoutRequestID          sql.NullString `gorm:"index;type:varchar(50);"`
+	StkResponseDescription     sql.NullString `gorm:"type:varchar(300)"`
+	StkResponseCustomerMessage sql.NullString `gorm:"type:varchar(300)"`
+	StkResponseCode            sql.NullString `gorm:"index;type:varchar(10)"`
+	ResultCode                 sql.NullString `gorm:"index;type:varchar(10)"`
+	ResultDescription          sql.NullString `gorm:"type:varchar(300)"`
+	MpesaReceiptId             sql.NullString `gorm:"index;type:varchar(50);unique"`
+	StkStatus                  sql.NullString `gorm:"index;type:varchar(30)"`
+	Source                     sql.NullString `gorm:"index;type:varchar(30)"`
+	Tag                        sql.NullString `gorm:"index;type:varchar(30)"`
 	// Succeeded                  bool         `gorm:"index;type:tinyint(1)"`
 	// Processed                  bool         `gorm:"index;type:tinyint(1)"`
 	Succeeded       string       `gorm:"index;type:enum('YES','NO');default:NO"`
@@ -68,18 +68,18 @@ func ToProto(db *STKTransaction) (*stk.StkTransaction, error) {
 		AccountReference:           db.AccountReference,
 		Amount:                     db.Amount,
 		PhoneNumber:                db.PhoneNumber,
-		TransactionDesc:            db.TransactionDesc,
-		MerchantRequestId:          db.MerchantRequestID,
-		CheckoutRequestId:          db.CheckoutRequestID,
-		StkResponseDescription:     db.StkResponseDescription,
-		StkResponseCode:            db.StkResponseCode,
-		StkResultCode:              db.ResultCode,
-		StkResultDesc:              db.ResultDescription,
-		MpesaReceiptId:             db.MpesaReceiptId,
+		TransactionDesc:            db.TransactionDesc.String,
+		MerchantRequestId:          db.MerchantRequestID.String,
+		CheckoutRequestId:          db.CheckoutRequestID.String,
+		StkResponseDescription:     db.StkResponseDescription.String,
+		StkResponseCode:            db.StkResponseCode.String,
+		StkResultCode:              db.ResultCode.String,
+		StkResultDesc:              db.ResultDescription.String,
+		MpesaReceiptId:             db.MpesaReceiptId.String,
 		Balance:                    "",
-		Status:                     stk.StkStatus(stk.StkStatus_value[db.StkStatus]),
-		Source:                     db.Source,
-		Tag:                        db.Tag,
+		Status:                     stk.StkStatus(stk.StkStatus_value[db.StkStatus.String]),
+		Source:                     db.Source.String,
+		Tag:                        db.Tag.String,
 		Succeeded:                  db.Succeeded == "YES",
 		Processed:                  db.Processed == "YES",
 		TransactionTimestamp:       db.TransactionTime.Time.UTC().Unix(),

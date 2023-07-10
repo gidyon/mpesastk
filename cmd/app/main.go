@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"flag"
 	"net/http"
@@ -181,7 +182,18 @@ func main() {
 	// Start service
 	app.Start(ctx, func() error {
 
-		var stkCallbackV1 = firstVal(viper.GetString("STK_RESULT_URL"))
+		var (
+			stkCallbackV1 = firstVal(viper.GetString("STK_RESULT_URL"))
+			httpClient    = &http.Client{
+				Transport: &http.Transport{
+					ForceAttemptHTTP2: true,
+					TLSClientConfig: &tls.Config{
+						InsecureSkipVerify: true,
+					},
+				},
+				Timeout: time.Second * 30,
+			}
+		)
 
 		// STK V1
 		stkV1, err := stk_app_v1.NewStkAPI(ctx, &stk_app_v1.Options{
@@ -201,8 +213,8 @@ func main() {
 				PostURL:           viper.GetString("STK_MPESA_POST_URL"),
 				QueryURL:          viper.GetString("STK_MPESA_QUERY_URL"),
 			},
-			HTTPClient:                http.DefaultClient,
-			UpdateAccessTokenDuration: 0,
+			HTTPClient:                httpClient,
+			UpdateAccessTokenDuration: viper.GetDuration("STK_ACCESS_TOKEN_UPDATE_INTERVAL"),
 		})
 		errs.Panic(err)
 
