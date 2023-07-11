@@ -31,10 +31,13 @@ docker_build:
 docker_tag:
 	@docker tag $(image) $(image)
 
+get_auth:
+	aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/q1f9b5m5
+
 docker_push:
 	@docker push $(image)
 
-build_service: compile docker_build docker_tag docker_push
+build_service: compile docker_build docker_tag get_auth docker_push
 
 deploy:
 	@kubectl delete -f deploy.yaml && kubectl apply -f deploy.yaml
