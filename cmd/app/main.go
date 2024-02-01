@@ -215,6 +215,9 @@ func main() {
 			},
 			HTTPClient:                httpClient,
 			UpdateAccessTokenDuration: viper.GetDuration("STK_ACCESS_TOKEN_UPDATE_INTERVAL"),
+			AllowQueryStatus:          viper.GetBool("STK_STATUS_QUERY_STATUS_ENABLED"),
+			SystemIdPrefix:            viper.GetString("STK_SYSTEM_ID_PREFIX"),
+			PublishProcessChannel:     viper.GetString("STK_PROCESS_CHANNEL"),
 		})
 		errs.Panic(err)
 
