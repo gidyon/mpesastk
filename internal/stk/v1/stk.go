@@ -46,7 +46,9 @@ type Options struct {
 	OptionSTK                 *OptionSTK
 	HTTPClient                HTTPClient
 	UpdateAccessTokenDuration time.Duration
-	// PublishChannel            string
+	AllowQueryStatus          bool
+	SystemIdPrefix            string
+	PublishProcessChannel     string
 }
 
 // ValidateOptions validates options required by stk service
@@ -175,7 +177,13 @@ func NewStkAPI(ctx context.Context, opt *Options) (_ stk.StkPushV1Server, err er
 	go stkAPI.updateAccessTokenWorker(ctx, dur)
 
 	// Worker for updating STK results
-	// go stkAPI.updateSTKResultsWorker(ctx, time.Minute*5)
+	if opt.AllowQueryStatus {
+		go stkAPI.updateSTKResultsWorker(ctx, time.Minute*5)
+	}
+
+	if opt.PublishProcessChannel != "" {
+		go stkAPI.processWorker(ctx)
+	}
 
 	return stkAPI, nil
 }
@@ -698,16 +706,14 @@ func (stkAPI *stkAPIServer) PublishStkTransaction(
 	case stk.StkProcessedState_STK_PROCESS_STATE_UNSPECIFIED:
 		err = stkAPI.RedisDB.Publish(ctx, channel, bs).Err()
 		if err != nil {
-			stkAPI.Logger.Errorln(err)
-			return nil, errs.WrapMessage(codes.Internal, "request failed")
+			return nil, errs.WrapMessagef(codes.Internal, "publish failed: %v", err)
 		}
 	case stk.StkProcessedState_STK_PROCESSED:
 		// Publish only if the processed state is true
 		if pb.GetProcessed() {
 			err = stkAPI.RedisDB.Publish(ctx, channel, bs).Err()
 			if err != nil {
-				stkAPI.Logger.Errorln(err)
-				return nil, errs.WrapMessage(codes.Internal, "request failed")
+				return nil, errs.WrapMessagef(codes.Internal, "publish failed: %v", err)
 			}
 		}
 	case stk.StkProcessedState_STK_NOT_PROCESSED:
@@ -715,8 +721,7 @@ func (stkAPI *stkAPIServer) PublishStkTransaction(
 		if !pb.GetProcessed() {
 			err = stkAPI.RedisDB.Publish(ctx, channel, bs).Err()
 			if err != nil {
-				stkAPI.Logger.Errorln(err)
-				return nil, errs.WrapMessage(codes.Internal, "request failed")
+				return nil, errs.WrapMessagef(codes.Internal, "publish failed: %v", err)
 			}
 		}
 	}
