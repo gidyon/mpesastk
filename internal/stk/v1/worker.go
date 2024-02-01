@@ -12,9 +12,12 @@ import (
 	"sync"
 	"time"
 
+	auth "github.com/gidyon/gomicro/pkg/grpc/auth"
 	"github.com/gidyon/mpesapayments/pkg/payload"
 	"github.com/gidyon/mpesapayments/pkg/utils/httputils"
 	stk "github.com/gidyon/mpesastk/pkg/api/stk/v1"
+	"github.com/go-redis/redis/v8"
+	"google.golang.org/grpc/metadata"
 )
 
 func (stkAPI *stkAPIServer) updateAccessTokenWorker(ctx context.Context, dur time.Duration) {
@@ -202,7 +205,7 @@ func (stkAPI *stkAPIServer) updateSTKResult(_ context.Context, db *STKTransactio
 		status = stk.StkStatus_STK_RESULT_FAILED.String()
 	}
 
-	systemId := fmt.Sprintf("ONFON_%d_%s", time.Now().UnixNano(), db.MerchantRequestID)
+	systemId := fmt.Sprintf("%s_%d_%s", firstVal(stkAPI.SystemIdPrefix, "ONFON"), time.Now().UnixNano(), db.MerchantRequestID.String)
 
 	switch strings.ToLower(res.Header.Get("content-type")) {
 	case "application/json", "application/json;charset=utf-8":
@@ -224,4 +227,77 @@ func (stkAPI *stkAPIServer) updateSTKResult(_ context.Context, db *STKTransactio
 	}
 
 	return nil
+}
+
+func (stkAPI *stkAPIServer) processWorker(ctx context.Context) {
+
+	stkAPI.Logger.Infof("Listening for process requests on channel: %v", stkAPI.PublishProcessChannel)
+
+	ch := stkAPI.RedisDB.Subscribe(ctx, stkAPI.PublishProcessChannel).Channel()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case msg := <-ch:
+			go func(msg *redis.Message) {
+				stkAPI.Logger.Infoln("Received process request")
+
+				datas := msg.PayloadSlice
+
+				if len(datas) != 2 {
+					datas = strings.Split(msg.Payload, "/")
+				}
+				if len(datas) != 2 {
+					stkAPI.Logger.Infoln("Incorrect payload")
+					return
+				}
+
+				token, err := stkAPI.AuthAPI.GenToken(
+					ctx,
+					&auth.Payload{
+						ID:           "1",
+						ProjectID:    "-",
+						Names:        "process_stk_worker",
+						PhoneNumber:  "",
+						EmailAddress: "",
+						Group:        auth.DefaultAdminGroup(),
+						Roles:        []string{},
+					},
+					time.Now().Add(time.Minute),
+				)
+				if err != nil {
+					stkAPI.Logger.Errorf("Failed to generate context: %v", err)
+					return
+				}
+
+				md := metadata.Pairs(auth.Header(), fmt.Sprintf("%s %s", auth.Scheme(), token))
+
+				// Communication context
+				ctx := metadata.NewIncomingContext(context.Background(), md)
+
+				// Authorize the context
+				ctx, err = stkAPI.AuthAPI.Authenticator(ctx)
+				if err != nil {
+					stkAPI.Logger.Errorf("Failed to authorize context: %v", err)
+					return
+				}
+
+				// Lower the processed state
+				datas[1] = strings.ToLower(datas[1])
+
+				// Process transaction
+				_, err = stkAPI.ProcessStkTransaction(ctx, &stk.ProcessStkTransactionRequest{
+					MpesaReceiptId: datas[0],
+					Processed:      datas[1] == "true" || datas[1] == "yes",
+				})
+				if err != nil {
+					stkAPI.Logger.Errorf("Failed to process transaction: %v", err)
+					return
+				}
+
+				stkAPI.Logger.Infof("Successfully processed transaction: %v", datas[0])
+			}(msg)
+		}
+	}
 }
