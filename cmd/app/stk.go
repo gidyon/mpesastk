@@ -125,8 +125,6 @@ func (gw *stkGateway) serveStkV1(w http.ResponseWriter, r *http.Request) (int, e
 	// Validate incoming stk payload
 	{
 		switch {
-		case stkPayload == nil:
-			err = fmt.Errorf("nil stk transaction")
 		case stkPayload.Body.STKCallback.CheckoutRequestID == "":
 			err = fmt.Errorf("missing checkout id")
 		case stkPayload.Body.STKCallback.MerchantRequestID == "":
@@ -188,7 +186,6 @@ func (gw *stkGateway) serveStkV1(w http.ResponseWriter, r *http.Request) (int, e
 				InitiatorID:                initReq.GetInitiatorId(),
 				InitiatorCustomerReference: initReq.GetInitiatorCustomerReference(),
 				InitiatorCustomerNames:     initReq.GetInitiatorCustomerNames(),
-				PhoneNumber:                stkPayload.Body.STKCallback.CallbackMetadata.PhoneNumber(),
 				Amount:                     fmt.Sprint(stkPayload.Body.STKCallback.CallbackMetadata.GetAmount()),
 				ShortCode:                  initReq.PublishMessage.Payload["short_code"],
 				AccountReference:           initReq.GetAccountReference(),
