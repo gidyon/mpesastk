@@ -33,8 +33,9 @@ docker_tag:
 	@docker tag $(image) $(image)
 
 get_auth:
-	aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin 201661467817.dkr.ecr.eu-north-1.amazonaws.com
-
+	# aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin 201661467817.dkr.ecr.eu-north-1.amazonaws.com
+	aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/q1f9b5m5
+	
 docker_push:
 	@docker push $(image)
 
